@@ -25,7 +25,7 @@ export default function AuthPage() {
       if (result.error) throw result.error;
       if (mode === "sign-up" && !result.data.session) {
         setSuccess("Cont creat. Verifică e-mailul pentru confirmare, apoi autentifică-te.");
-      } else { router.push("/discover"); router.refresh(); }
+      } else { router.push("/onboarding"); router.refresh(); }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "A apărut o eroare.");
     } finally { setLoading(false); }

@@ -20,7 +20,8 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user && request.nextUrl.pathname.startsWith("/discover")) {
+  const isPrivateRoute = request.nextUrl.pathname.startsWith("/discover") || request.nextUrl.pathname.startsWith("/onboarding");
+  if (!user && isPrivateRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/auth";
     redirectUrl.searchParams.set("message", "Autentifică-te pentru a continua.");
