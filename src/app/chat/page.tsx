@@ -1,5 +1,16 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import ChatClient from "./ChatClient";
 
-export default function ChatPage() {
-  return <main className="min-h-screen bg-[#f6f3ee] px-6 py-16 text-[#173f35]"><div className="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-xl shadow-[#173f35]/10"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d66c4f]">Roommate</p><h1 className="mt-3 text-3xl font-semibold">Conversația ta</h1><p className="mt-4 text-slate-600">Chatul intern va fi activat la pasul următor. Fluxul de contact este deja pregătit.</p><Link href="/discover" className="mt-8 inline-flex rounded-xl bg-[#173f35] px-5 py-3 font-semibold text-white">Înapoi la recomandări</Link></div></main>;
+export default async function ChatPage({ searchParams }: { searchParams: Promise<{ with?: string }> }) {
+  const targetId = (await searchParams).with;
+  if (!targetId) redirect("/discover");
+  const supabase = await createClient();
+  if (!supabase) return <main className="min-h-screen bg-[#f6f3ee] p-10 text-[#173f35]">Configurează Supabase pentru a activa chatul.</main>;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/auth");
+  const { data: target } = await supabase.from("profiles").select("display_name").eq("id", targetId).maybeSingle();
+  if (!target) redirect("/discover");
+  const { data: messages } = await supabase.from("messages").select("id, sender_id, receiver_id, body, created_at").or(`and(sender_id.eq.${user.id},receiver_id.eq.${targetId}),and(sender_id.eq.${targetId},receiver_id.eq.${user.id})`).order("created_at", { ascending: true });
+  return <main className="min-h-screen bg-[#f6f3ee] px-6 py-10 text-[#173f35]"><div className="mx-auto max-w-2xl"><a href="/discover" className="mb-6 inline-block text-sm text-slate-500 hover:text-[#173f35]">← Înapoi la recomandări</a><ChatClient userId={user.id} targetId={targetId} targetName={target.display_name} initialMessages={messages ?? []} /></div></main>;
 }
