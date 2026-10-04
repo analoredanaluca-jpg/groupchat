@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,6 +16,23 @@ export default function OnboardingPage() {
   const [interests, setInterests] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+        if (!profile) return;
+        setEditing(true);
+        setForm({ display_name: profile.display_name, birth_date: profile.birth_date, city: profile.city, district: profile.district ?? "", university: profile.university, study_field: profile.study_field, gender: profile.gender, preferred_roommate_gender: profile.preferred_roommate_gender, budget_min: String(profile.budget_min), budget_max: String(profile.budget_max), sleep_schedule: profile.sleep_schedule, organization_level: profile.organization_level ?? "echilibrat", bio: profile.bio ?? "" });
+        setInterests(profile.interests ?? []);
+      } catch { /* The submit action displays the actionable error. */ }
+    }
+    void loadProfile();
+  }, []);
 
   function updateField(field: string, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -44,8 +61,8 @@ export default function OnboardingPage() {
   return (
     <main className="min-h-screen bg-[#f6f3ee] px-6 py-12 text-[#173f35]">
       <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d66c4f]">Pasul 1 din 1</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Spune-ne cu cine ai vrea să locuiești.</h1>
+        <div className="flex items-center justify-between"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d66c4f]">{editing ? "Profilul tău" : "Pasul 1 din 1"}</p><button type="button" onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); router.push("/auth"); }} className="text-sm text-slate-500 hover:text-[#173f35]">Ieși din cont</button></div>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight">{editing ? "Actualizează-ți profilul." : "Spune-ne cu cine ai vrea să locuiești."}</h1>
         <p className="mt-3 max-w-2xl text-slate-600">Completează profilul pentru a primi recomandări relevante. Îți protejăm datele sensibile.</p>
 
         <form onSubmit={handleSubmit} className="mt-10 space-y-8 rounded-3xl bg-white p-6 shadow-xl shadow-[#173f35]/10 sm:p-10">
@@ -71,7 +88,7 @@ export default function OnboardingPage() {
 
           <label className="block text-sm font-medium">Descriere scurtă<span className="ml-2 font-normal text-slate-400">opțional</span><textarea maxLength={300} value={form.bio} onChange={(e) => updateField("bio", e.target.value)} placeholder="Ce ar trebui să știe un viitor coleg despre tine?" className="input min-h-28 resize-y" /></label>
           {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-          <button disabled={loading} className="w-full rounded-xl bg-[#173f35] px-4 py-3.5 font-semibold text-white transition hover:bg-[#25584b] disabled:opacity-60">{loading ? "Se salvează..." : "Salvează profilul și continuă"}</button>
+          <button disabled={loading} className="w-full rounded-xl bg-[#173f35] px-4 py-3.5 font-semibold text-white transition hover:bg-[#25584b] disabled:opacity-60">{loading ? "Se salvează..." : editing ? "Actualizează profilul" : "Salvează profilul și continuă"}</button>
         </form>
       </div>
     </main>
