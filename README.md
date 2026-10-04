@@ -2,6 +2,8 @@
 
 MVP web pentru găsirea unui coleg de cameră compatibil în orașele mari din România.
 
+https://groupchat-flax.vercel.app/
+
 ## Stack
 
 - Next.js + TypeScript
