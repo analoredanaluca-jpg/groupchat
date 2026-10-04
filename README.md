@@ -41,6 +41,7 @@ Rulează în Supabase SQL Editor, în această ordine:
 1. `supabase/migrations/001_profiles.sql`
 2. `supabase/migrations/002_messages.sql`
 3. `supabase/migrations/003_safety.sql`
+4. `supabase/migrations/004_realtime.sql`
 
 ### 4. Pornire
 
@@ -79,3 +80,14 @@ Aplicația nu stochează CNP și nu afișează public e-mailul sau numărul de t
 ## Repository
 
 [github.com/analoredanaluca-jpg/groupchat](https://github.com/analoredanaluca-jpg/groupchat)
+
+## Deploy fără rulare locală
+
+Proiectul poate fi importat direct în Vercel din repository-ul GitHub. În Vercel → Project Settings → Environment Variables adaugă:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=cheia-publica-anon-sau-publishable
+```
+
+Vercel va instala automat dependențele și va executa build-ul remote. Rulează mai întâi toate cele patru migrații în Supabase.
