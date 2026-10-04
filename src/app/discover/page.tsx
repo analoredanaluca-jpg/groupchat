@@ -1,13 +1,23 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getMatches, type Profile } from "@/lib/matching";
+import DiscoverClient from "./DiscoverClient";
 
 export default async function DiscoverPage() {
   const supabase = await createClient();
-  if (supabase) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) redirect("/auth");
-    const { data: profile } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
-    if (!profile) redirect("/onboarding");
+  if (!supabase) {
+    return <main className="min-h-screen bg-[#f6f3ee] px-6 py-16"><div className="mx-auto max-w-4xl"><h1 className="text-4xl font-semibold text-[#173f35]">Configurează Supabase</h1><p className="mt-4 text-slate-600">Adaugă valorile din `.env.example` în `.env.local` pentru a vedea recomandările.</p></div></main>;
   }
-  return <main className="min-h-screen bg-[#f6f3ee] px-6 py-16"><div className="mx-auto max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d66c4f]">Roommate</p><h1 className="mt-3 text-4xl font-semibold text-[#173f35]">Descoperă colegi compatibili</h1><p className="mt-4 max-w-xl text-slate-600">Profilul și recomandările vor fi construite în pașii următori.</p></div></main>;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/auth");
+
+  const { data: currentProfile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  if (!currentProfile) redirect("/onboarding");
+
+  const { data: profiles, error } = await supabase.from("profiles").select("*").neq("id", user.id);
+  if (error) throw new Error(error.message);
+  const matches = getMatches(currentProfile as Profile, (profiles ?? []) as Profile[]);
+
+  return <main className="min-h-screen bg-[#f6f3ee] px-6 py-10 text-[#173f35]"><div className="mx-auto max-w-5xl"><header className="mb-10 flex items-center justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d66c4f]">Roommate</p><h1 className="mt-2 text-3xl font-semibold">Descoperă colegi compatibili</h1></div><a href="/" className="text-sm font-medium text-slate-500 hover:text-[#173f35]">Acasă</a></header><DiscoverClient matches={matches} /></div></main>;
 }
