@@ -1,5 +1,6 @@
 export type Profile = {
   id: string;
+  account_type?: "member" | "staff";
   display_name: string;
   birth_date: string;
   city: string;
@@ -8,6 +9,7 @@ export type Profile = {
   study_field: string;
   gender: "masculin" | "feminin";
   preferred_roommate_gender: "masculin" | "feminin" | "oricare";
+  accommodation_preference: "camin" | "chirie" | "deja_am_chirie" | "doar_coleg";
   budget_min: number;
   budget_max: number;
   sleep_schedule: "devreme" | "flexibil" | "tarziu";
@@ -40,6 +42,7 @@ function budgetOverlap(first: Profile, second: Profile) {
 export function getMatches(current: Profile, candidates: Profile[]): Match[] {
   return candidates
     .filter((candidate) => candidate.id !== current.id)
+    .filter((candidate) => candidate.account_type !== "staff")
     .filter((candidate) => acceptsGender(current.preferred_roommate_gender, candidate.gender))
     .filter((candidate) => acceptsGender(candidate.preferred_roommate_gender, current.gender))
     .filter((candidate) => budgetOverlap(current, candidate))

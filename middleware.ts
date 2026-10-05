@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: { user } } = await supabase.auth.getUser();
-  const isPrivateRoute = request.nextUrl.pathname.startsWith("/discover") || request.nextUrl.pathname.startsWith("/onboarding");
+  const isPrivateRoute = request.nextUrl.pathname.startsWith("/discover") || request.nextUrl.pathname.startsWith("/onboarding") || request.nextUrl.pathname.startsWith("/feed") || request.nextUrl.pathname.startsWith("/matches") || request.nextUrl.pathname.startsWith("/staff") || request.nextUrl.pathname.startsWith("/groupchat");
   if (!user && isPrivateRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/auth";
